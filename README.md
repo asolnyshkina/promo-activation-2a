@@ -3,9 +3,12 @@
 Живая интерактивная веб-страница по дизайн-хендоффу: экран **«Активация промокода»**
 в личном кабинете TV-приложения (навигация с пульта, экранная клавиатура).
 
-**🔗 Live: https://asolnyshkina.github.io/promo-activation-2a/**
+## Варианты
 
-**[→ Открыть `index.html`](index.html)**
+- **Вариант 2a — ошибка под кнопкой** (поле и кнопка не сдвигаются)
+  🔗 https://asolnyshkina.github.io/promo-activation-2a/ · [`index.html`](index.html)
+- **Ошибка под полем** (длинный текст между полем и кнопкой, кнопка сдвигается вниз)
+  🔗 https://asolnyshkina.github.io/promo-activation-2a/under-field/ · [`under-field/index.html`](under-field/index.html)
 
 ## Что это
 

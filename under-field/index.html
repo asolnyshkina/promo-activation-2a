@@ -1,0 +1,520 @@
+<title>Активация промокода — ошибка под полем</title>
+<style>
+  :root{
+    /* --- TV screen tokens (from handoff) --- */
+    --screen-bg:#000000;
+    --card-bg:#262629;
+    --field-bg:#1B1B1E;
+    --accent:#F6BE00;
+    --accent-ink:#1A1A1A;
+    --btn-idle-bg:#34343A;
+    --btn-idle-ink:#C9C9CE;
+    --err-border:#F0616E;
+    --err-ink:#D98A90;
+    --ok-ink:#86C793;
+    --text:#FFFFFF;
+    --text-2:#8B8B90;
+    --side-dim:#7C7C82;
+    --side-dimmer:#6E6E73;
+
+    /* --- page chrome (deep, slightly cool near-black to frame the pure-black TV) --- */
+    --page:#0B0B0D;
+    --page-2:#111114;
+    --bezel:#232327;
+    --chrome-ink:#8A8A93;
+    --chrome-ink-dim:#5B5B63;
+    --chrome-line:#26262B;
+
+    --tv-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --ui-font:ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
+
+    --s:1; /* scale factor set by JS */
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(1200px 700px at 50% -10%, #17171c 0%, rgba(23,23,28,0) 60%),
+      var(--page);
+    color:var(--chrome-ink);
+    font-family:var(--ui-font);
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    flex-direction:column;
+    min-height:100%;
+  }
+
+  .wrap{
+    width:100%;
+    max-width:1240px;
+    margin:0 auto;
+    padding:22px clamp(14px,4vw,40px) 30px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    flex:1;
+  }
+
+  /* ---------- top chrome bar ---------- */
+  .bar{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
+    border-bottom:1px solid var(--chrome-line);
+    padding-bottom:14px;
+  }
+  .id .eyebrow{
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--chrome-ink-dim);
+  }
+  .id h1{
+    margin-top:6px;
+    font-family:var(--tv-font);
+    font-size:clamp(17px,2.4vw,22px);
+    font-weight:700;
+    color:#EDEDF0;
+    letter-spacing:-.01em;
+  }
+  .id .sub{
+    margin-top:4px;
+    font-size:12px;
+    color:var(--chrome-ink-dim);
+  }
+  .id .sub b{color:var(--accent);font-weight:600;}
+
+  .tabs{
+    display:flex;
+    gap:6px;
+    background:var(--page-2);
+    border:1px solid var(--chrome-line);
+    border-radius:11px;
+    padding:5px;
+  }
+  .tab{
+    font-family:var(--ui-font);
+    font-size:12.5px;
+    letter-spacing:.01em;
+    color:var(--chrome-ink);
+    background:transparent;
+    border:0;
+    border-radius:7px;
+    padding:8px 13px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .15s,color .15s;
+  }
+  .tab:hover{color:#D6D6DC;}
+  .tab[aria-selected="true"]{
+    background:var(--accent);
+    color:var(--accent-ink);
+    font-weight:600;
+  }
+  .tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  /* ---------- TV frame ---------- */
+  .stage-wrap{
+    width:min(1120px, 100%, calc((100vh - 230px) * (1120/630)));
+    margin:2px auto 0;
+    border-radius:16px;
+    padding:10px;
+    background:linear-gradient(180deg,#232329,#141417);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.05) inset,
+      0 40px 90px -30px rgba(0,0,0,.9),
+      0 8px 30px -12px rgba(0,0,0,.7);
+  }
+  .screen-clip{
+    position:relative;
+    width:100%;
+    aspect-ratio:1120/630;
+    border-radius:8px;
+    overflow:hidden;
+    background:var(--screen-bg);
+  }
+  .stage{
+    position:absolute;
+    top:0;left:0;
+    width:1120px;
+    height:630px;
+    transform-origin:top left;
+    transform:scale(var(--s));
+    background:var(--screen-bg);
+    font-family:var(--tv-font);
+    user-select:none;
+  }
+
+  /* ----- top panel ----- */
+  .top{
+    position:absolute;top:0;left:0;right:0;height:74px;
+    padding:0 42px;
+    display:flex;align-items:center;
+  }
+  .back{color:var(--side-dimmer);font-size:22px;font-weight:600;}
+  .crumb{position:absolute;left:452px;color:var(--text);font-size:22px;font-weight:700;}
+
+  /* ----- sidebar ----- */
+  .side{
+    position:absolute;top:96px;left:44px;width:230px;
+    display:flex;flex-direction:column;gap:26px;
+  }
+  .side a{font-size:20px;font-weight:600;color:var(--side-dim);}
+  .side a.dimmer{color:var(--side-dimmer);}
+  .side a.active{color:var(--accent);font-weight:700;}
+
+  /* ----- card ----- */
+  .card{
+    position:absolute;top:60px;left:396px;width:560px;
+    padding:34px 40px;
+    background:var(--card-bg);
+    border-radius:20px;
+    display:flex;flex-direction:column;
+    box-sizing:border-box;
+    z-index:2;
+  }
+  .card h2{
+    text-align:center;color:var(--text);
+    font-size:30px;font-weight:800;margin-bottom:14px;
+  }
+  .card .lead{
+    text-align:center;color:var(--text-2);
+    font-size:18px;font-weight:500;line-height:1.35;margin-bottom:24px;
+  }
+
+  .field{
+    height:66px;border-radius:12px;background:var(--field-bg);
+    border:2px solid var(--accent);
+    padding:0 22px;display:flex;align-items:center;gap:14px;
+    cursor:text;
+    transition:border-color .15s;
+  }
+  .field .val{
+    font-size:22px;font-weight:600;color:var(--text);letter-spacing:.5px;
+    white-space:nowrap;overflow:hidden;
+  }
+  .field .val.ph{color:var(--side-dimmer);font-weight:500;letter-spacing:0;}
+  .field .caret{
+    width:2px;height:30px;background:var(--accent);
+    animation:blink 1.05s step-end infinite;
+  }
+  .field.error{border-color:var(--err-border);}
+
+  .apply{
+    height:60px;border-radius:12px;margin-top:14px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:800;cursor:pointer;
+    background:var(--btn-idle-bg);color:var(--btn-idle-ink);
+    transition:background .15s,color .15s;
+  }
+  .apply.focused{background:var(--accent);color:var(--accent-ink);}
+
+  /* error/success message — under the field, above the button */
+  .msg{
+    margin-top:12px;text-align:left;
+    font-size:18px;font-weight:500;line-height:1.32;color:var(--err-border);
+  }
+  .msg.ok{color:var(--ok-ink);}
+  .msg.empty{display:none;}
+
+  /* ----- on-screen keyboard ----- */
+  .kb{
+    position:absolute;left:0;right:0;bottom:0;top:405px;
+    padding:8px 44px 12px;
+    display:none;flex-direction:column;justify-content:center;gap:8px;
+    background:linear-gradient(180deg,rgba(0,0,0,0) 0%, #060607 22%, #060607 100%);
+    z-index:1;
+  }
+  .kb .lang{color:var(--side-dimmer);font-size:14px;font-weight:600;letter-spacing:.04em;}
+  .kb .row{display:flex;gap:8px;justify-content:center;}
+  .key{
+    min-width:46px;height:40px;padding:0 11px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:9px;background:#1B1B1E;color:#C9C9CE;
+    font-size:20px;font-weight:600;cursor:pointer;
+  }
+  .key.wide{min-width:150px;color:var(--side-dim);font-size:16px;}
+  .key.space{min-width:300px;}
+  .key:hover{background:#26262b;color:#fff;}
+  .key:active{background:var(--accent);color:var(--accent-ink);}
+  .kb.open{display:flex;animation:kbUp .22s ease-out;}
+  @keyframes kbUp{from{transform:translateY(34px);opacity:0;}to{transform:none;opacity:1;}}
+
+  /* fade for message/keyboard */
+  .fade{animation:fade .18s ease-out;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  @keyframes blink{50%{opacity:0;}}
+  .shake{animation:shake .3s;}
+  @keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-7px);}40%,80%{transform:translateX(7px);}}
+
+  @media (prefers-reduced-motion:reduce){
+    .fade,.shake,.kb.open{animation:none;}
+    .field .caret{animation:none;}
+  }
+
+  /* ---------- footer hint ---------- */
+  .hint{
+    display:flex;gap:10px 22px;flex-wrap:wrap;align-items:center;
+    justify-content:center;
+    font-size:12px;color:var(--chrome-ink-dim);
+    padding-top:4px;
+  }
+  .hint .k{
+    font-family:var(--ui-font);
+    color:#C7C7CE;background:var(--page-2);
+    border:1px solid var(--chrome-line);
+    border-bottom-width:2px;
+    border-radius:6px;padding:2px 7px;font-size:11px;
+  }
+  .hint b{color:var(--accent);font-weight:600;}
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <div class="id">
+      <div class="eyebrow">Design handoff · TV UI</div>
+      <h1>Активация промокода — состояние ошибки</h1>
+      <div class="sub">Ошибка <b>под полем</b> · длинный текст переносится, кнопка сдвигается вниз</div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Состояние экрана">
+      <button class="tab" role="tab" data-state="empty"    aria-selected="false">Пусто</button>
+      <button class="tab" role="tab" data-state="error"    aria-selected="true">Ошибка</button>
+      <button class="tab" role="tab" data-state="keyboard" aria-selected="false">С клавиатурой</button>
+    </div>
+  </header>
+
+  <div class="stage-wrap">
+    <div class="screen-clip" id="clip">
+      <div class="stage" id="stage">
+
+        <div class="top">
+          <span class="back">‹ Назад</span>
+          <span class="crumb">Личный кабинет</span>
+        </div>
+
+        <nav class="side">
+          <a class="dimmer">Профили</a>
+          <a>Аккаунт</a>
+          <a>Подписки</a>
+          <a>Настройки</a>
+          <a class="active">Активация промокода</a>
+          <a>Поддержка</a>
+        </nav>
+
+        <section class="card" id="card">
+          <h2>Активация промокода</h2>
+          <p class="lead">Для некоторых сертификатов или промокодов<br>может потребоваться привязать способ оплаты</p>
+
+          <div class="field" id="field">
+            <span class="val ph" id="val">Промокод</span>
+            <span class="caret" id="caret" hidden></span>
+          </div>
+
+          <div class="msg empty" id="msg"></div>
+
+          <div class="apply" id="apply">Применить</div>
+        </section>
+
+        <div class="kb" id="kb">
+          <div class="lang">RU · EN</div>
+          <div class="row" data-row="0"></div>
+          <div class="row" data-row="1"></div>
+          <div class="row" data-row="2"></div>
+          <div class="row">
+            <div class="key wide" data-act="lang">RU · EN</div>
+            <div class="key space" data-act="space">пробел</div>
+            <div class="key wide" data-act="back">⌫ Стереть</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">
+    <span><span class="k">←</span> <span class="k">→</span> экранная клавиатура · <span class="k">↑</span> <span class="k">↓</span> фокус поле / кнопка · <span class="k">Enter</span> применить</span>
+    <span>Верный код — <b>PROSENSE</b>, любой другой даёт ошибку</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  var clip  = document.getElementById('clip');
+  var stage = document.getElementById('stage');
+  var card  = document.getElementById('card');
+  var field = document.getElementById('field');
+  var valEl = document.getElementById('val');
+  var caret = document.getElementById('caret');
+  var apply = document.getElementById('apply');
+  var msg   = document.getElementById('msg');
+  var kb    = document.getElementById('kb');
+  var tabs  = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+
+  var CORRECT = 'PROSENSE';
+
+  // --- responsive scale: keep the 1120x630 coordinate system pixel-exact ---
+  function fit(){
+    stage.style.setProperty('--s', (clip.clientWidth / 1120).toString());
+  }
+  new ResizeObserver(fit).observe(clip);
+  fit();
+
+  // --- keyboard layout (ЙЦУКЕН) ---
+  var LAYOUT = [
+    'й ц у к е н г ш щ з х ъ',
+    'ф ы в а п р о л д ж э',
+    'я ч с м и т ь б ю'
+  ];
+  var lang = 'RU';
+  var EN = [
+    'q w e r t y u i o p',
+    'a s d f g h j k l',
+    'z x c v b n m'
+  ];
+  function buildKb(){
+    var rows = lang === 'RU' ? LAYOUT : EN;
+    for (var r=0;r<3;r++){
+      var row = kb.querySelector('[data-row="'+r+'"]');
+      row.innerHTML='';
+      rows[r].split(' ').forEach(function(ch){
+        var b=document.createElement('div');
+        b.className='key';
+        b.textContent=ch;
+        b.dataset.char=ch;
+        row.appendChild(b);
+      });
+    }
+  }
+  buildKb();
+
+  // --- state ---
+  var state = {
+    value:'FREESTART25',
+    status:'error',      // idle | error | ok
+    focused:'button',    // field | button
+    keyboardOpen:false
+  };
+
+  function render(){
+    // field value / placeholder
+    if (state.value){
+      valEl.textContent = state.value;
+      valEl.classList.remove('ph');
+    } else {
+      valEl.textContent = 'Промокод';
+      valEl.classList.add('ph');
+    }
+    // caret only when field focused
+    caret.hidden = !(state.focused === 'field');
+
+    // field border
+    field.classList.toggle('error', state.status === 'error');
+
+    // button focus
+    apply.classList.toggle('focused', state.focused === 'button');
+
+    // message — under the field, above the button (empty => collapsed)
+    if (state.status === 'error'){
+      msg.textContent = 'Этот промо-код не доступен для активации аккаунтом в данной панели';
+      msg.classList.remove('ok','empty');
+    } else if (state.status === 'ok'){
+      msg.textContent = 'Промокод активирован';
+      msg.classList.add('ok');
+      msg.classList.remove('empty');
+    } else {
+      msg.textContent = '';
+      msg.classList.remove('ok');
+      msg.classList.add('empty');
+    }
+
+    // keyboard — hug the bottom of the card (never overlap the button)
+    kb.classList.toggle('open', state.keyboardOpen);
+    if (state.keyboardOpen){
+      kb.style.top = (card.offsetTop + card.offsetHeight + 10) + 'px';
+    }
+  }
+
+  function fadeMsg(){
+    if (state.status !== 'idle'){
+      msg.classList.remove('fade'); void msg.offsetWidth; msg.classList.add('fade');
+    }
+  }
+
+  function focusField(){ state.focused='field'; state.keyboardOpen=true; render(); }
+  function focusButton(){ state.focused='button'; state.keyboardOpen=false; render(); }
+
+  function edit(fn){
+    fn();
+    state.status='idle';          // any change resets validation
+    render();
+  }
+
+  function doApply(){
+    if (!state.value.trim()){
+      field.classList.remove('shake'); void field.offsetWidth; field.classList.add('shake');
+      return;
+    }
+    state.status = (state.value.trim().toUpperCase() === CORRECT) ? 'ok' : 'error';
+    state.focused = 'button';
+    state.keyboardOpen = false;
+    render();
+    fadeMsg();
+  }
+
+  // --- pointer interactions ---
+  field.addEventListener('click', focusField);
+  apply.addEventListener('click', function(){ state.focused='button'; doApply(); });
+
+  kb.addEventListener('click', function(e){
+    var k = e.target.closest('.key'); if(!k) return;
+    var act = k.dataset.act;
+    if (act === 'back')      edit(function(){ state.value = state.value.slice(0,-1); });
+    else if (act === 'space')edit(function(){ state.value += ' '; });
+    else if (act === 'lang') { lang = lang==='RU'?'EN':'RU'; buildKb(); }
+    else if (k.dataset.char) edit(function(){ state.value += (lang==='RU'?k.dataset.char:k.dataset.char).toUpperCase(); });
+  });
+
+  // --- remote / physical keyboard ---
+  document.addEventListener('keydown', function(e){
+    // don't hijack the tab controls
+    if (document.activeElement && document.activeElement.classList.contains('tab')) return;
+
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ e.preventDefault(); focusField(); return; }
+    if (e.key === 'ArrowUp'){ e.preventDefault(); focusField(); return; }
+    if (e.key === 'ArrowDown'){ e.preventDefault(); focusButton(); return; }
+
+    if (e.key === 'Enter'){
+      e.preventDefault();
+      if (state.focused === 'field') focusButton();
+      else doApply();
+      return;
+    }
+    if (state.focused === 'field'){
+      if (e.key === 'Backspace'){ e.preventDefault(); edit(function(){ state.value=state.value.slice(0,-1); }); return; }
+      if (e.key.length === 1 && /[\wа-яёa-z0-9 -]/i.test(e.key)){
+        e.preventDefault(); edit(function(){ state.value += e.key.toUpperCase(); });
+      }
+    }
+  });
+
+  // --- state presets (tabs) ---
+  var PRESETS = {
+    empty:    { value:'',            status:'idle',  focused:'field',  keyboardOpen:false },
+    error:    { value:'FREESTART25', status:'error', focused:'button', keyboardOpen:false },
+    keyboard: { value:'FREESTART',   status:'idle',  focused:'field',  keyboardOpen:true  }
+  };
+  function setState(name){
+    var p = PRESETS[name];
+    state.value=p.value; state.status=p.status; state.focused=p.focused; state.keyboardOpen=p.keyboardOpen;
+    tabs.forEach(function(t){ t.setAttribute('aria-selected', t.dataset.state===name ? 'true':'false'); });
+    render();
+    if (name==='error') fadeMsg();
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ setState(t.dataset.state); }); });
+
+  render();
+})();
+</script>
