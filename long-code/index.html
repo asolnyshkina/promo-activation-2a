@@ -1,0 +1,248 @@
+<title>Активация промокода — длинный код в поле</title>
+<style>
+  :root{
+    --screen-bg:#000000;
+    --card-bg:#262629;
+    --field-bg:#1B1B1E;
+    --accent:#F6BE00;
+    --accent-ink:#1A1A1A;
+    --btn-idle-bg:#34343A;
+    --btn-idle-ink:#C9C9CE;
+    --text:#FFFFFF;
+    --text-2:#8B8B90;
+    --side-dim:#7C7C82;
+    --side-dimmer:#6E6E73;
+
+    --page:#0B0B0D;
+    --page-2:#111114;
+    --chrome-ink:#8A8A93;
+    --chrome-ink-dim:#5B5B63;
+    --chrome-line:#26262B;
+
+    --tv-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --ui-font:ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
+
+    --s:1;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:radial-gradient(1200px 700px at 50% -10%, #17171c 0%, rgba(23,23,28,0) 60%), var(--page);
+    color:var(--chrome-ink);font-family:var(--ui-font);-webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column;min-height:100%;
+  }
+  .wrap{width:100%;max-width:1240px;margin:0 auto;padding:22px clamp(14px,4vw,40px) 30px;
+    display:flex;flex-direction:column;gap:18px;flex:1;}
+
+  .bar{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    border-bottom:1px solid var(--chrome-line);padding-bottom:14px;}
+  .id .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--chrome-ink-dim);}
+  .id h1{margin-top:6px;font-family:var(--tv-font);font-size:clamp(17px,2.4vw,22px);font-weight:700;color:#EDEDF0;letter-spacing:-.01em;}
+  .id .sub{margin-top:4px;font-size:12px;color:var(--chrome-ink-dim);}
+  .id .sub b{color:var(--accent);font-weight:600;}
+
+  .controls{display:flex;gap:6px;background:var(--page-2);border:1px solid var(--chrome-line);border-radius:11px;padding:5px;}
+  .ctl{font-family:var(--ui-font);font-size:12.5px;color:var(--chrome-ink);background:transparent;border:0;border-radius:7px;padding:8px 13px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s;}
+  .ctl:hover{color:#D6D6DC;}
+  .ctl.primary{background:var(--accent);color:var(--accent-ink);font-weight:600;}
+  .ctl:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .stage-wrap{width:min(1120px,100%,calc((100vh - 240px) * (1120/630)));margin:2px auto 0;border-radius:16px;padding:10px;
+    background:linear-gradient(180deg,#232329,#141417);
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 40px 90px -30px rgba(0,0,0,.9),0 8px 30px -12px rgba(0,0,0,.7);}
+  .screen-clip{position:relative;width:100%;aspect-ratio:1120/630;border-radius:8px;overflow:hidden;background:var(--screen-bg);}
+  .stage{position:absolute;top:0;left:0;width:1120px;height:630px;transform-origin:top left;transform:scale(var(--s));
+    background:var(--screen-bg);font-family:var(--tv-font);user-select:none;}
+
+  .top{position:absolute;top:0;left:0;right:0;height:74px;padding:0 42px;display:flex;align-items:center;}
+  .back{color:var(--side-dimmer);font-size:22px;font-weight:600;}
+  .crumb{position:absolute;left:452px;color:var(--text);font-size:22px;font-weight:700;}
+
+  .side{position:absolute;top:96px;left:44px;width:230px;display:flex;flex-direction:column;gap:26px;}
+  .side a{font-size:20px;font-weight:600;color:var(--side-dim);}
+  .side a.dimmer{color:var(--side-dimmer);}
+  .side a.active{color:var(--accent);font-weight:700;}
+
+  .card{position:absolute;top:60px;left:396px;width:560px;padding:34px 40px;background:var(--card-bg);border-radius:20px;
+    display:flex;flex-direction:column;box-sizing:border-box;z-index:2;}
+  .card h2{text-align:center;color:var(--text);font-size:30px;font-weight:800;margin-bottom:14px;}
+  .card .lead{text-align:center;color:var(--text-2);font-size:18px;font-weight:500;line-height:1.35;margin-bottom:24px;}
+
+  /* ---- field with horizontal scroll ---- */
+  .field{height:66px;border-radius:12px;background:var(--field-bg);border:2px solid var(--accent);
+    padding:0 22px;position:relative;overflow:hidden;display:flex;align-items:center;cursor:text;}
+  .scroller{display:flex;align-items:center;white-space:nowrap;transition:transform .13s ease-out;will-change:transform;}
+  .val{font-size:22px;font-weight:600;color:var(--text);letter-spacing:.5px;white-space:nowrap;}
+  .val.ph{color:var(--side-dimmer);font-weight:500;letter-spacing:0;}
+  .caret{width:2px;height:30px;margin-left:2px;background:var(--accent);flex:0 0 auto;animation:blink 1.05s step-end infinite;}
+  /* left gradient hint: part of the code is scrolled out of view */
+  .fade{position:absolute;left:0;top:0;bottom:0;width:64px;pointer-events:none;opacity:0;transition:opacity .22s;
+    background:linear-gradient(90deg,var(--field-bg) 18%, rgba(27,27,30,0));z-index:3;}
+
+  .apply{height:60px;border-radius:12px;margin-top:14px;display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:800;background:var(--btn-idle-bg);color:var(--btn-idle-ink);}
+
+  /* on-screen scale badge showing chars / width — a tiny live meter */
+  @keyframes blink{50%{opacity:0;}}
+
+  /* status narration below the TV */
+  .status{display:flex;align-items:center;justify-content:center;gap:12px;min-height:22px;
+    font-size:13px;color:var(--chrome-ink);text-align:center;}
+  .status .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:0 0 auto;
+    box-shadow:0 0 0 0 rgba(246,190,0,.5);animation:pulse 1.6s ease-out infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(246,190,0,.45);}70%{box-shadow:0 0 0 8px rgba(246,190,0,0);}100%{box-shadow:0 0 0 0 rgba(246,190,0,0);}}
+
+  .note{max-width:760px;margin:0 auto;text-align:center;font-size:12px;line-height:1.5;color:var(--chrome-ink-dim);}
+  .note b{color:var(--chrome-ink);font-weight:600;}
+  .note code{color:var(--accent);}
+
+  @media (prefers-reduced-motion:reduce){
+    .scroller{transition:none;}
+    .caret{animation:none;}
+    .status .dot{animation:none;}
+  }
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <div class="id">
+      <div class="eyebrow">Design handoff · TV UI · поведение</div>
+      <h1>Активация промокода — длинный код в поле</h1>
+      <div class="sub">Код не влезает по ширине → уезжает влево, <b>хвост с курсором виден</b>, слева — градиент-подсказка</div>
+    </div>
+    <div class="controls">
+      <button class="ctl" id="pause">⏸ Пауза</button>
+      <button class="ctl primary" id="replay">↻ Заново</button>
+    </div>
+  </header>
+
+  <div class="stage-wrap">
+    <div class="screen-clip" id="clip">
+      <div class="stage" id="stage">
+        <div class="top">
+          <span class="back">‹ Назад</span>
+          <span class="crumb">Личный кабинет</span>
+        </div>
+        <nav class="side">
+          <a class="dimmer">Профили</a>
+          <a>Аккаунт</a>
+          <a>Подписки</a>
+          <a>Настройки</a>
+          <a class="active">Активация промокода</a>
+          <a>Поддержка</a>
+        </nav>
+        <section class="card" id="card">
+          <h2>Активация промокода</h2>
+          <p class="lead">Для некоторых сертификатов или промокодов<br>может потребоваться привязать способ оплаты</p>
+          <div class="field" id="field">
+            <div class="scroller" id="scroller"><span class="val ph" id="val">Промокод</span><span class="caret" id="caret"></span></div>
+            <div class="fade" id="fade"></div>
+          </div>
+          <div class="apply">Применить</div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">Печатаем длинный промокод…</span></div>
+  <p class="note">
+    Поле фиксированной ширины. Пока код помещается — он просто виден целиком.
+    Как только длина превышает ширину — поле <b>прокручивается за вводом</b>: конец кода и курсор всегда на виду,
+    а начало плавно уходит под <b>левый градиент</b> — визуальный признак, что символы скрыты слева.
+    Обрезки «…» и переноса нет — так пользователь всегда видит то, что печатает.
+  </p>
+</div>
+
+<script>
+(function(){
+  var clip=document.getElementById('clip'), stage=document.getElementById('stage');
+  var field=document.getElementById('field'), scroller=document.getElementById('scroller');
+  var val=document.getElementById('val'), caret=document.getElementById('caret'), fade=document.getElementById('fade');
+  var statusText=document.getElementById('statusText');
+  var pauseBtn=document.getElementById('pause'), replayBtn=document.getElementById('replay');
+
+  var CODE='NY2026-FREESTREAM-90DAYS-XXL-PROMO';
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function fit(){ stage.style.setProperty('--s',(clip.clientWidth/1120).toString()); }
+  new ResizeObserver(fit).observe(clip); fit();
+
+  // --- render value + horizontal scroll ---
+  function setValue(v){
+    if(v){ val.textContent=v; val.classList.remove('ph'); }
+    else { val.textContent='Промокод'; val.classList.add('ph'); }
+  }
+  function layout(toStart){
+    var avail = field.clientWidth - 44;          // inner width minus horizontal padding
+    var w = scroller.offsetWidth;                 // natural content width (text + caret)
+    var over = w - avail;
+    var tx = over>0 ? -over : 0;
+    if(toStart) tx = 0;
+    scroller.style.transform = 'translateX('+tx+'px)';
+    fade.style.opacity = (over>0 && tx<0) ? '1' : '0';
+    return over>0;
+  }
+  function status(t){ statusText.textContent=t; }
+
+  // --- pause-aware sleep with cancellation ---
+  var runId=0, paused=false;
+  function raf(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+  async function sleep(ms,my){
+    var left=ms;
+    while(left>0){
+      if(my!==runId) throw 0;
+      if(paused){ await raf(120); continue; }
+      var t=Math.min(left,60); await raf(t); left-=t;
+    }
+    if(my!==runId) throw 0;
+  }
+
+  async function play(){
+    var my=++runId;
+    try{
+      while(true){
+        // 1) empty
+        setValue(''); layout(false); status('Печатаем длинный промокод…'); await sleep(650,my);
+        // 2) type char by char
+        for(var i=1;i<=CODE.length;i++){
+          setValue(CODE.slice(0,i));
+          var over=layout(false);
+          status(over ? 'Код не влезает — поле уезжает влево за вводом' : 'Печатаем длинный промокод…');
+          await sleep(95,my);
+        }
+        // 3) hold on the tail (caret visible, left fade on)
+        status('Готово: конец кода и курсор видны, начало скрыто под градиентом'); await sleep(1700,my);
+        // 4) reveal the beginning of the code
+        scroller.style.transitionDuration='.6s';
+        layout(true); fade.style.opacity='0';
+        status('Прокрутка к началу — видно, что код длиннее поля'); await sleep(1700,my);
+        scroller.style.transitionDuration='';
+        // 5) back to the tail, then loop
+        layout(false); status('Возврат к концу ввода'); await sleep(1200,my);
+      }
+    }catch(e){ /* cancelled */ }
+  }
+
+  function staticState(){
+    setValue(CODE); scroller.style.transition='none'; layout(false);
+    status('Код длиннее поля: конец с курсором виден, начало под левым градиентом');
+    document.querySelector('.status .dot').style.display='none';
+  }
+
+  pauseBtn.addEventListener('click',function(){
+    paused=!paused;
+    pauseBtn.textContent = paused ? '▶ Играть' : '⏸ Пауза';
+  });
+  replayBtn.addEventListener('click',function(){
+    paused=false; pauseBtn.textContent='⏸ Пауза';
+    if(reduce){ staticState(); return; }
+    play();
+  });
+
+  // start
+  requestAnimationFrame(function(){
+    if(reduce){ staticState(); }
+    else { play(); }
+  });
+})();
+</script>

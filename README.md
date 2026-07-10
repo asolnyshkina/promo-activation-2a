@@ -9,6 +9,8 @@
   🔗 https://asolnyshkina.github.io/promo-activation-2a/ · [`index.html`](index.html)
 - **Ошибка под полем** (длинный текст между полем и кнопкой, кнопка сдвигается вниз)
   🔗 https://asolnyshkina.github.io/promo-activation-2a/under-field/ · [`under-field/index.html`](under-field/index.html)
+- **Длинный код в поле** (анимация: код не влезает по ширине → поле прокручивается за вводом, слева градиент-подсказка)
+  🔗 https://asolnyshkina.github.io/promo-activation-2a/long-code/ · [`long-code/index.html`](long-code/index.html)
 
 ## Что это
 
