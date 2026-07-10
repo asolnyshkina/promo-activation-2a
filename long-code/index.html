@@ -75,9 +75,6 @@
   .val{font-size:22px;font-weight:600;color:var(--text);letter-spacing:.5px;white-space:nowrap;}
   .val.ph{color:var(--side-dimmer);font-weight:500;letter-spacing:0;}
   .caret{width:2px;height:30px;margin-left:2px;background:var(--accent);flex:0 0 auto;animation:blink 1.05s step-end infinite;}
-  /* left gradient hint: part of the code is scrolled out of view */
-  .fade{position:absolute;left:0;top:0;bottom:0;width:64px;pointer-events:none;opacity:0;transition:opacity .22s;
-    background:linear-gradient(90deg,var(--field-bg) 18%, rgba(27,27,30,0));z-index:3;}
 
   .apply{height:60px;border-radius:12px;margin-top:14px;display:flex;align-items:center;justify-content:center;
     font-size:22px;font-weight:800;background:var(--btn-idle-bg);color:var(--btn-idle-ink);}
@@ -108,7 +105,7 @@
     <div class="id">
       <div class="eyebrow">Design handoff · TV UI · поведение</div>
       <h1>Активация промокода — длинный код в поле</h1>
-      <div class="sub">Код не влезает по ширине → уезжает влево, <b>хвост с курсором виден</b>, слева — градиент-подсказка</div>
+      <div class="sub">Код не влезает по ширине → уезжает влево, <b>хвост с курсором виден</b>, начало уходит за левый край</div>
     </div>
     <div class="controls">
       <button class="ctl" id="pause">⏸ Пауза</button>
@@ -136,7 +133,6 @@
           <p class="lead">Для некоторых сертификатов или промокодов<br>может потребоваться привязать способ оплаты</p>
           <div class="field" id="field">
             <div class="scroller" id="scroller"><span class="val ph" id="val">Промокод</span><span class="caret" id="caret"></span></div>
-            <div class="fade" id="fade"></div>
           </div>
           <div class="apply">Применить</div>
         </section>
@@ -148,8 +144,8 @@
   <p class="note">
     Поле фиксированной ширины. Пока код помещается — он просто виден целиком.
     Как только длина превышает ширину — поле <b>прокручивается за вводом</b>: конец кода и курсор всегда на виду,
-    а начало плавно уходит под <b>левый градиент</b> — визуальный признак, что символы скрыты слева.
-    Обрезки «…» и переноса нет — так пользователь всегда видит то, что печатает.
+    а начало <b>уходит за левый край</b> поля. Обрезки «…» и переноса нет —
+    так пользователь всегда видит то, что печатает.
   </p>
 </div>
 
@@ -157,7 +153,7 @@
 (function(){
   var clip=document.getElementById('clip'), stage=document.getElementById('stage');
   var field=document.getElementById('field'), scroller=document.getElementById('scroller');
-  var val=document.getElementById('val'), caret=document.getElementById('caret'), fade=document.getElementById('fade');
+  var val=document.getElementById('val'), caret=document.getElementById('caret');
   var statusText=document.getElementById('statusText');
   var pauseBtn=document.getElementById('pause'), replayBtn=document.getElementById('replay');
 
@@ -179,7 +175,6 @@
     var tx = over>0 ? -over : 0;
     if(toStart) tx = 0;
     scroller.style.transform = 'translateX('+tx+'px)';
-    fade.style.opacity = (over>0 && tx<0) ? '1' : '0';
     return over>0;
   }
   function status(t){ statusText.textContent=t; }
@@ -210,11 +205,11 @@
           status(over ? 'Код не влезает — поле уезжает влево за вводом' : 'Печатаем длинный промокод…');
           await sleep(95,my);
         }
-        // 3) hold on the tail (caret visible, left fade on)
-        status('Готово: конец кода и курсор видны, начало скрыто под градиентом'); await sleep(1700,my);
+        // 3) hold on the tail (caret visible)
+        status('Готово: конец кода и курсор видны, начало ушло за левый край'); await sleep(1700,my);
         // 4) reveal the beginning of the code
         scroller.style.transitionDuration='.6s';
-        layout(true); fade.style.opacity='0';
+        layout(true);
         status('Прокрутка к началу — видно, что код длиннее поля'); await sleep(1700,my);
         scroller.style.transitionDuration='';
         // 5) back to the tail, then loop
@@ -225,7 +220,7 @@
 
   function staticState(){
     setValue(CODE); scroller.style.transition='none'; layout(false);
-    status('Код длиннее поля: конец с курсором виден, начало под левым градиентом');
+    status('Код длиннее поля: конец с курсором виден, начало ушло за левый край');
     document.querySelector('.status .dot').style.display='none';
   }
 
